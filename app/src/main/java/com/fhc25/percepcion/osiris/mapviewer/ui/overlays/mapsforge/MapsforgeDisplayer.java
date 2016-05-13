@@ -23,6 +23,7 @@ import com.fhc25.percepcion.osiris.mapviewer.ui.overlays.VisualElementDisplayer;
 
 import org.mapsforge.map.android.view.MapView;
 import org.mapsforge.map.layer.Layer;
+import org.mapsforge.map.layer.download.TileDownloadLayer;
 import org.mapsforge.map.layer.renderer.TileRendererLayer;
 
 import java.util.ArrayList;
@@ -57,10 +58,10 @@ public class MapsforgeDisplayer extends
 		java.util.Collection<Layer> removeElementsList = new ArrayList<Layer>();
 		
 		for (Layer layer : mapView.getLayerManager().getLayers()) {
-			
-			if (!(layer instanceof TileRendererLayer)) {
-                removeElementsList.add(layer);
-            }
+
+			if (!(layer instanceof TileRendererLayer || layer instanceof TileDownloadLayer)) {
+				removeElementsList.add(layer);
+			}
 		}
 		
 		for (Layer layer : removeElementsList) {

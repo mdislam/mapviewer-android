@@ -1,18 +1,18 @@
 /**
-Copyright 2015 Osiris Project Team
+ Copyright 2015 Osiris Project Team
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+ http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/   
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ */
 
 package com.fhc25.percepcion.osiris.mapviewer.ui.views.indoor;
 
@@ -31,6 +31,8 @@ import org.mapsforge.map.android.util.AndroidUtil;
 import org.mapsforge.map.android.view.MapView;
 import org.mapsforge.map.layer.Layer;
 import org.mapsforge.map.layer.cache.TileCache;
+import org.mapsforge.map.layer.download.TileDownloadLayer;
+import org.mapsforge.map.layer.download.tilesource.OpenStreetMapMapnik;
 import org.mapsforge.map.layer.renderer.TileRendererLayer;
 import org.mapsforge.map.reader.MapDatabase;
 import org.mapsforge.map.reader.header.FileOpenResult;
@@ -58,7 +60,10 @@ public class MapsforgeMapView extends RelativeLayout {
 
     private MapView mapView;
     private TileCache tileCache;
-    private TileRendererLayer tileRendererLayer;
+//    private TileRendererLayer tileRendererLayer;
+
+    public static final LatLong LATLONG_AACHEN = new LatLong(50.780863, 6.073590);
+    protected TileDownloadLayer downloadLayer;
 
     private Observer.Collection observers = new Observer.Collection();
 
@@ -220,18 +225,58 @@ public class MapsforgeMapView extends RelativeLayout {
 
     public void onPause() {
 
-        if (tileRendererLayer != null
+        /*if (tileRendererLayer != null
                 && mapView.getLayerManager().getLayers()
                 .contains(tileRendererLayer)) {
             mapView.getLayerManager().getLayers().remove(tileRendererLayer);
             tileRendererLayer.onDestroy();
             tileRendererLayer = null;
+        }*/
+
+        if (downloadLayer != null
+                && mapView.getLayerManager().getLayers()
+                .contains(downloadLayer)) {
+            mapView.getLayerManager().getLayers().remove(downloadLayer);
+            downloadLayer.onDestroy();
+            downloadLayer = null;
         }
     }
 
+
+
     public void setMapFile(File mapFile) {
 
-        if (mapFile.exists() && mapView != null) {
+        if (downloadLayer != null
+                && mapView.getLayerManager().getLayers()
+                .contains(downloadLayer)) {
+            mapView.getLayerManager().getLayers()
+                    .remove(downloadLayer);
+            downloadLayer.onDestroy();
+            downloadLayer = null;
+        }
+
+        tileCache.destroy();
+        // create a tile cache of suitable size
+        tileCache = AndroidUtil.createTileCache(getContext(),
+                "mapcache", mapView.getModel().displayModel.getTileSize(), 1f,
+                mapView.getModel().frameBufferModel.getOverdrawFactor());
+
+        mapView.getModel().mapViewPosition.setMapPosition(new MapPosition(LATLONG_AACHEN, (byte) 16));
+
+        downloadLayer = new TileDownloadLayer(tileCache,
+                this.mapView.getModel().mapViewPosition, OpenStreetMapMapnik.INSTANCE,
+                AndroidGraphicFactory.INSTANCE);
+
+        try {
+            mapView.getLayerManager().getLayers().add(downloadLayer);
+            downloadLayer.start();
+            setMapPosition(latitude, longitude);
+            setZoomLevel(zoom);
+        } catch (Exception e) {
+            Lgr.e(TAG, e);
+        }
+
+        /*if (mapFile.exists() && mapView != null) {
 
             this.mapFile = mapFile;
 
@@ -282,9 +327,10 @@ public class MapsforgeMapView extends RelativeLayout {
             } catch (Exception e) {
                 Lgr.e(TAG, e);
             }
+
         } else {
             Lgr.w(TAG, "Could not find  " + mapFile.toString() + " or mapview == null");
-        }
+        }*/
     }
 
     public interface Observer {

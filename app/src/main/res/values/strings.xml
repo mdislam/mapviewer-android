@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">Mapviewer</string>
 
-    <string name="osiris_app_id"></string>
-    <string name="osiris_app_host"></string>
+    <string name="osiris_app_id">aachen</string>
+    <string name="osiris_app_host">http://server_ip:8020/osiris</string>
 
     <string name="indoor_loading_buildings">Loading buildings</string>
     <string name="indoor_loading_mapfile">Loading background map</string>
